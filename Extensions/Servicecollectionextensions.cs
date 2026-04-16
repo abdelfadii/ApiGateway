@@ -1,4 +1,5 @@
-﻿using System.Text;
+using System.Security.Claims;
+using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -40,13 +41,13 @@ public static class ServiceCollectionExtensions
                 ClockSkew = TimeSpan.FromSeconds(30)
             };
 
-            // Forward the token to downstream microservices via X-User-* headers
+            // Forward user claims to downstream microservices
             options.Events = new JwtBearerEvents
             {
                 OnTokenValidated = context =>
                 {
-                    var userId = context.Principal?.FindFirst("sub")?.Value;
-                    var role = context.Principal?.FindFirst("role")?.Value;
+                    var userId = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    var role = context.Principal?.FindFirst(ClaimTypes.Role)?.Value;
 
                     if (userId is not null)
                         context.HttpContext.Request.Headers["X-User-Id"] = userId;
@@ -83,7 +84,7 @@ public static class ServiceCollectionExtensions
             // Admin only
             options.AddPolicy("admin", policy =>
                 policy.RequireAuthenticatedUser()
-                      .RequireClaim("role", "admin"));
+                      .RequireRole("Admin"));
 
             // Provider (fournisseur) access
             options.AddPolicy("provider", policy =>
@@ -116,7 +117,7 @@ public static class ServiceCollectionExtensions
             {
                 limiterOptions.PermitLimit = permitLimit;
                 limiterOptions.Window = TimeSpan.FromSeconds(windowSeconds);
-                limiterOptions.SegmentsPerWindow = 6;  // evaluate every 10 s
+                limiterOptions.SegmentsPerWindow = 6;
                 limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                 limiterOptions.QueueLimit = queueLimit;
             });
