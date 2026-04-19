@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -9,7 +9,6 @@ namespace SirmarocGateway.Extensions;
 
 public static class ServiceCollectionExtensions
 {
-    // ── JWT Authentication ────────────────────────────────────────────────────
     public static IServiceCollection AddGatewayAuthentication(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -25,7 +24,7 @@ public static class ServiceCollectionExtensions
         })
         .AddJwtBearer(options =>
         {
-            options.RequireHttpsMetadata = false; // set true in production behind TLS termination
+            options.RequireHttpsMetadata = false;
             options.SaveToken = true;
 
             options.TokenValidationParameters = new TokenValidationParameters
@@ -40,7 +39,7 @@ public static class ServiceCollectionExtensions
                 ClockSkew = TimeSpan.FromSeconds(30)
             };
 
-            // Forward the token to downstream microservices via X-User-* headers
+            // Forward the token to downstream microservices via headers
             options.Events = new JwtBearerEvents
             {
                 OnTokenValidated = context =>
@@ -55,13 +54,6 @@ public static class ServiceCollectionExtensions
                         context.HttpContext.Request.Headers["X-User-Role"] = role;
 
                     return Task.CompletedTask;
-                },
-                OnAuthenticationFailed = context =>
-                {
-                    var logger = context.HttpContext.RequestServices
-                        .GetRequiredService<ILogger<JwtBearerEvents>>();
-                    logger.LogWarning("JWT authentication failed: {Error}", context.Exception.Message);
-                    return Task.CompletedTask;
                 }
             };
         });
@@ -69,28 +61,22 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    // ── Authorization Policies ────────────────────────────────────────────────
     public static IServiceCollection AddGatewayAuthorization(this IServiceCollection services)
     {
         services.AddAuthorization(options =>
         {
-            // Public routes — no auth required
             options.AddPolicy("AAA", policy => policy.RequireAssertion(_ => true));
 
-            // Any authenticated user
             options.AddPolicy("authenticated", policy => policy.RequireAuthenticatedUser());
 
-            // Admin only
             options.AddPolicy("admin", policy =>
                 policy.RequireAuthenticatedUser()
                       .RequireClaim("role", "admin"));
 
-            // Provider (fournisseur) access
             options.AddPolicy("provider", policy =>
                 policy.RequireAuthenticatedUser()
                       .RequireClaim("role", "provider", "admin"));
 
-            // Fallback: deny everything unless explicitly allowed
             options.FallbackPolicy = new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()
                 .Build();
@@ -99,7 +85,6 @@ public static class ServiceCollectionExtensions
         return services;
     }
 
-    // ── Rate Limiting ─────────────────────────────────────────────────────────
     public static IServiceCollection AddGatewayRateLimiting(
         this IServiceCollection services,
         IConfiguration configuration)
@@ -111,17 +96,15 @@ public static class ServiceCollectionExtensions
 
         services.AddRateLimiter(options =>
         {
-            // Default sliding-window policy applied to every request
             options.AddSlidingWindowLimiter("global", limiterOptions =>
             {
                 limiterOptions.PermitLimit = permitLimit;
                 limiterOptions.Window = TimeSpan.FromSeconds(windowSeconds);
-                limiterOptions.SegmentsPerWindow = 6;  // evaluate every 10 s
+                limiterOptions.SegmentsPerWindow = 6;
                 limiterOptions.QueueProcessingOrder = QueueProcessingOrder.OldestFirst;
                 limiterOptions.QueueLimit = queueLimit;
             });
 
-            // Tighter policy for the auth endpoints (anti-brute-force)
             options.AddFixedWindowLimiter("auth", limiterOptions =>
             {
                 limiterOptions.PermitLimit = 10;
@@ -131,24 +114,6 @@ public static class ServiceCollectionExtensions
             });
 
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-
-            options.OnRejected = async (context, cancellationToken) =>
-            {
-                var logger = context.HttpContext.RequestServices
-                    .GetRequiredService<ILogger<RateLimiterOptions>>();
-
-                logger.LogWarning(
-                    "Rate limit exceeded for IP {Ip} on {Path}",
-                    context.HttpContext.Connection.RemoteIpAddress,
-                    context.HttpContext.Request.Path);
-
-                context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
-                context.HttpContext.Response.ContentType = "application/json";
-
-                await context.HttpContext.Response.WriteAsync(
-                    """{"error":"Too many requests. Please slow down and try again later."}""",
-                    cancellationToken);
-            };
         });
 
         return services;
