@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 
 namespace SirmarocGateway.Extensions;
 
@@ -41,21 +42,22 @@ public static class ServiceCollectionExtensions
 
             // Forward the token to downstream microservices via headers
             options.Events = new JwtBearerEvents
-            {
+{
                 OnTokenValidated = context =>
                 {
-                    var userId = context.Principal?.FindFirst("sub")?.Value;
-                    var role = context.Principal?.FindFirst("role")?.Value;
+                    var userId = context.Principal?.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                    var role = context.Principal?.FindFirst(ClaimTypes.Role)?.Value;
 
-                    if (userId is not null)
+                    if (!string.IsNullOrWhiteSpace(userId))
                         context.HttpContext.Request.Headers["X-User-Id"] = userId;
 
-                    if (role is not null)
+                    if (!string.IsNullOrWhiteSpace(role))
                         context.HttpContext.Request.Headers["X-User-Role"] = role;
 
                     return Task.CompletedTask;
                 }
             };
+
         });
 
         return services;
@@ -71,11 +73,12 @@ public static class ServiceCollectionExtensions
 
             options.AddPolicy("admin", policy =>
                 policy.RequireAuthenticatedUser()
-                      .RequireClaim("role", "admin"));
+                    .RequireRole("Admin"));
 
             options.AddPolicy("provider", policy =>
                 policy.RequireAuthenticatedUser()
-                      .RequireClaim("role", "provider", "admin"));
+                    .RequireRole("Provider", "Admin"));
+
 
             options.FallbackPolicy = new AuthorizationPolicyBuilder()
                 .RequireAuthenticatedUser()

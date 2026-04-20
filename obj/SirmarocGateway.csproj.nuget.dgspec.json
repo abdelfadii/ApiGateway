@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\toufi\\source\\repos\\SirmarocGateway\\SirmarocGateway\\SirmarocGateway.csproj": {}
+    "C:\\Users\\abdel\\Desktop\\Projects\\Gateway\\SirmarocGateway.csproj": {}
   },
   "projects": {
-    "C:\\Users\\toufi\\source\\repos\\SirmarocGateway\\SirmarocGateway\\SirmarocGateway.csproj": {
+    "C:\\Users\\abdel\\Desktop\\Projects\\Gateway\\SirmarocGateway.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\toufi\\source\\repos\\SirmarocGateway\\SirmarocGateway\\SirmarocGateway.csproj",
+        "projectUniqueName": "C:\\Users\\abdel\\Desktop\\Projects\\Gateway\\SirmarocGateway.csproj",
         "projectName": "SirmarocGateway",
-        "projectPath": "C:\\Users\\toufi\\source\\repos\\SirmarocGateway\\SirmarocGateway\\SirmarocGateway.csproj",
-        "packagesPath": "C:\\Users\\toufi\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\toufi\\source\\repos\\SirmarocGateway\\SirmarocGateway\\obj\\",
+        "projectPath": "C:\\Users\\abdel\\Desktop\\Projects\\Gateway\\SirmarocGateway.csproj",
+        "packagesPath": "C:\\Users\\abdel\\.nuget\\packages\\",
+        "outputPath": "C:\\Users\\abdel\\Desktop\\Projects\\Gateway\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\toufi\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\abdel\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -86,7 +86,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.305/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.306/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
