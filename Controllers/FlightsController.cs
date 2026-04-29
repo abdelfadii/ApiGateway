@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 namespace SirmarocGateway.Controllers;
 
 [ApiController]
+[AllowAnonymous]
 [Route("api/flights")]
 public class FlightsController : ControllerBase
 {
