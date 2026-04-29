@@ -14,6 +14,7 @@ builder.Configuration
 // ─── Services ────────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddHttpClient();
 
 // YARP Reverse Proxy (core of the API Gateway)
 builder.Services.AddReverseProxy()
@@ -94,7 +95,10 @@ app.UseAuthorization();
 // 7. Health endpoint (bypasses auth)
 app.MapHealthChecks("/health");
 
-// 8. YARP reverse proxy — handles all routing to microservices
+// 8. Local gateway controllers (e.g., flights proxy)
+app.MapControllers();
+
+// 9. YARP reverse proxy — handles all routing to microservices
 app.MapReverseProxy();
 
 app.Run();
